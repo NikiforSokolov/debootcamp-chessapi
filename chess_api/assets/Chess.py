@@ -5,7 +5,8 @@ from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import pandas as pd
 
-sys.path.insert(0, r"C:\Users\danielp\chess_git")
+#this is a short trick to get the module to run in python interactive window
+#sys.path.insert(0, r"C:\Users\danielp\chess_git")
 from connectors.Chess import ChessApiClient
 
 def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:

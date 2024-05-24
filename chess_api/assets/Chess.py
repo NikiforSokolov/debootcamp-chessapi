@@ -4,9 +4,10 @@ import re
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import pandas as pd
+import re
 
 #this is a short trick to get the module to run in python interactive window
-#sys.path.insert(0, r"C:\Users\danielp\chess_git")
+sys.path.insert(0, r"C:\Users\yagve\Project\debootcamp-chessapi\chess_api")
 from connectors.Chess import ChessApiClient
 
 def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
@@ -50,6 +51,53 @@ def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
 
     return dates
 
+def _get_avg_move_time(valid_games:pd.DataFrame)-> pd.DataFrame:
+    
+
+    for index, row in valid_games.iterrows():
+
+        pgn_str=row['pgn']
+# Use regex to find all timestamps
+        timestamps = re.findall(r'\[%clk (\d+:\d+:\d+\.\d+)\]', pgn_string)
+
+# Convert timestamps to seconds for easier calculations
+        def convert_to_seconds(t):
+            hours, minutes, seconds = t.split(':')
+            return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+
+# Convert each timestamp to seconds
+        times_in_seconds = [convert_to_seconds(time) for time in timestamps]
+
+# Calculate time spent on each move, separating by player
+        white_times = times_in_seconds[0::2]
+        black_times = times_in_seconds[1::2]
+
+        def calculate_time_differences(times):
+            return [times[i] - times[i + 1] for i in range(len(times) - 1)]
+
+        white_time_spent = calculate_time_differences(white_times)
+        black_time_spent = calculate_time_differences(black_times)
+
+# Compute average time spent per move for each player
+        average_time_per_move_white = sum(white_time_spent) / len(white_time_spent) if white_time_spent else 0
+        average_time_per_move_black = sum(black_time_spent) / len(black_time_spent) if black_time_spent else 0
+
+        print(f'Average time per move for White: {average_time_per_move_white:.2f} seconds')
+        print(f'Average time per move for Black: {average_time_per_move_black:.2f} seconds')
+
+        if row['user_color']=="white":
+            row['user_avg_move_time_sec']=average_time_per_move_white
+        elif row['user_color']=="black":
+            row['user_avg_move_time_sec']=average_time_per_move_black
+        else:
+            raise Exception(f"The User does not have a valid color i.e either white or black")
+        
+    return valid_games
+
+
+
+    
+
 def extract_games(start_date: str, end_date: str, username: str) -> pd.DataFrame:
     months = generate_monthly_dates(start_date, end_date)
     valid_games = []
@@ -67,6 +115,9 @@ def extract_games(start_date: str, end_date: str, username: str) -> pd.DataFrame
             if start_date <= game_date <= end_date:
                 valid_games.append(parsed_game)
         print(f"loaded games for the month of {year}-{month}")
+
+    valid_games=_get_avg_move_time(valid_games)
+    
 
     return pd.DataFrame(valid_games)
 

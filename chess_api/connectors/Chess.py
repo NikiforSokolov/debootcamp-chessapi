@@ -5,7 +5,7 @@ from requests import JSONDecodeError
 import re
 
 class ChessApiClient:
-    def __init__(self, username: str):
+    def __init__(self, username: str, user_agent: str):
         """
         Class to connect to chess.com API
 
@@ -15,7 +15,7 @@ class ChessApiClient:
         """
         self.username = username
         self.api_path = "http://api.chess.com/pub"
-        self.headers = {'User-Agent': 'username: danihell, email: danihello@gmail.com'}
+        self.headers = {'User-Agent': f"{user_agent}"}
 
     def get_archive_urls(self) -> list:
         """

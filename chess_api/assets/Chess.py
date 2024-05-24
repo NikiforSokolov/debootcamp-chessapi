@@ -4,9 +4,9 @@ import re
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import pandas as pd
+from sqlalchemy import Table, MetaData, Column, Integer, String, Float
 
-#this is a short trick to get the module to run in python interactive window
-#sys.path.insert(0, r"C:\Users\danielp\chess_git")
+from connectors.postgresql import PostgreSqlClient
 from connectors.Chess import ChessApiClient
 
 def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
@@ -37,6 +37,10 @@ def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
 
+    # in case we just want to extract a single month we will return the start and end date without performing any iterations
+    if start.year == end.year and start.month == end.month:
+        return [start, end]
+
     dates = []
     current_date = start
 
@@ -50,19 +54,18 @@ def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
 
     return dates
 
-def extract_games(start_date: str, end_date: str, username: str) -> pd.DataFrame:
+def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClient) -> pd.DataFrame:
     months = generate_monthly_dates(start_date, end_date)
     valid_games = []
-    api = ChessApiClient(username)
     start_date = months[0]
     end_date = months[-1]
 
     for date in months:
         year = date.year
         month = date.month
-        games = api.get_monthly_games(year=year, month=month)
+        games = chess_api_client.get_monthly_games(year=year, month=month)
         for game in games:
-            parsed_game = parse_game(game, api.username)
+            parsed_game = parse_game(game, chess_api_client.username)
             game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
             if start_date <= game_date <= end_date:
                 valid_games.append(parsed_game)
@@ -70,9 +73,8 @@ def extract_games(start_date: str, end_date: str, username: str) -> pd.DataFrame
 
     return pd.DataFrame(valid_games)
 
-def extract_user_info(username: str) -> pd.DataFrame:
-    api = ChessApiClient(username)
-    df = pd.DataFrame(api.get_user_info())
+def extract_user_info(chess_api_client: ChessApiClient) -> pd.DataFrame:
+    df = pd.DataFrame(chess_api_client.get_user_info())
     return df
 
 def pgn_to_dict(pgn: list) -> dict:
@@ -140,3 +142,36 @@ def extract_eco_codes(eco_codes_path: Path) -> pd.DataFrame:
     df = pd.read_csv(eco_codes_path)
     return df
 
+def load(
+    df: pd.DataFrame,
+    postgresql_client: PostgreSqlClient,
+    table: Table,
+    metadata: MetaData,
+    load_method: str = "overwrite",
+) -> None:
+    """
+    Load dataframe to a database.
+
+    Args:
+        df: dataframe to load
+        postgresql_client: postgresql client
+        table: sqlalchemy table
+        metadata: sqlalchemy metadata
+        load_method: supports one of: [insert, upsert, overwrite]
+    """
+    if load_method == "insert":
+        postgresql_client.insert(
+            data=df.to_dict(orient="records"), table=table, metadata=metadata
+        )
+    elif load_method == "upsert":
+        postgresql_client.upsert(
+            data=df.to_dict(orient="records"), table=table, metadata=metadata
+        )
+    elif load_method == "overwrite":
+        postgresql_client.overwrite(
+            data=df.to_dict(orient="records"), table=table, metadata=metadata
+        )
+    else:
+        raise Exception(
+            "Please specify a correct load method: [insert, upsert, overwrite]"
+        )

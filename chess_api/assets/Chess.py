@@ -52,6 +52,10 @@ def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
     return dates
 
 def _get_avg_move_time(valid_games:pd.DataFrame)-> pd.DataFrame:
+
+    """
+    Determines average time for the moves taken by the user 
+    """
     
  
     for index, row in valid_games.iterrows(): #iterate over dataframe

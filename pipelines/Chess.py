@@ -62,7 +62,8 @@ if __name__ == "__main__":
                         'opponent_accuracy',
                         'start_date',
                         'ECO',
-                        'moves_per_player']]
+                        'moves_per_player',
+                        'user_avg_move_time_sec']]
     print(games_df.head())
     #load
     games_tbl = Table("games",
@@ -80,7 +81,8 @@ if __name__ == "__main__":
           Column('opponent_accuracy', Float),
           Column('start_date', String),
           Column('ECO', String),
-          Column('moves_per_player', Integer)
+          Column('moves_per_player', Integer),
+          Column('user_avg_move_time_sec', Float)
           )
     load(df=games_df,
          postgresql_client=postgres_sql_client,

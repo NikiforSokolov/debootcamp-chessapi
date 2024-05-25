@@ -116,7 +116,10 @@ def extract_games(start_date: str, end_date: str, username: str) -> pd.DataFrame
         print(f"loaded games for the month of {year}-{month}")
 
     valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
-    
+
+    valid_games['start_date_time'] = valid_games['start_date'].astype(str)+ ' ' + valid_games['start_time'].astype(str)
+    valid_games["end_date_time"] = pd.to_datetime(valid_games["end_date_time"], format='%Y-%m-%d %H:%M:%S')
+    valid_games.drop(columns=["start_date","start_time"],axis=1,inplace=True)
 
     return valid_games
 

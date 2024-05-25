@@ -34,6 +34,7 @@ if __name__ == "__main__":
             f"Missing {yaml_file_path} file! Please create the yaml file with at least a `name` key for the pipeline name."
         )
 
+
     chess_api_client = ChessApiClient(pipeline_config.get("config").get("games").get("username"), user_agent=USER_AGENT)
 
     # extract

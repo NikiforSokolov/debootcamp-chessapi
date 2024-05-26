@@ -115,6 +115,58 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
 
   return valid_games
 
+def incremental_modify_dates(ChessApiClient: ChessApiClient,
+                             PostgreSqlClient: PostgreSqlClient,
+                             target_table: str,
+                             target_column: str,
+                             start_date: str,
+                             end_date: str) ->tuple[str]:
+    """
+    Modifies the start and end dates for an ETL process based on the latest game date for a specific username from Chess.com API.
+
+    Parameters:
+    ChessApiClient (ChessApiClient): An instance of the Chess API client containing the username.
+    PostgreSqlClient (PostgreSqlClient): An instance of the PostgreSQL client managing database interactions.
+    target_table (str): The name of the target table in the PostgreSQL database.
+    target_column (str): The column name in the target table where the dates are stored.
+    start_date (datetime): The initial start date for the ETL process.
+    end_date (datetime): The initial end date for the ETL process.
+
+    Returns:
+    Tuple[datetime, datetime]: A tuple containing the modified start and end dates.
+
+    Example:
+    >>> from datetime import datetime
+    >>> from dateutil.relativedelta import relativedelta
+    >>> ChessApiClient.username = 'sample_user'
+    >>> PostgreSqlClient.has_table = lambda table_name: True
+    >>> PostgreSqlClient.engine.execute = lambda statement: [(datetime(2023, 1, 1),)]
+    >>> start_date = datetime(2022, 1, 1)
+    >>> end_date = datetime(2023, 1, 1)
+    >>> new_start_date, new_end_date = incremental_modify_date(ChessApiClient, PostgreSqlClient, 'chess_games', 'game_date', start_date, end_date)
+    >>> print(f"New Start Date: {new_start_date}")
+    >>> print(f"New End Date: {new_end_date}")
+
+    Notes:
+    - The function assumes that the `target_table` and `target_column` exist in the PostgreSQL database.
+    - If the username does not exist in the target table, the start and end dates remain unchanged.
+    - The `end_date` is always set to the current date.
+    """
+
+    statement = f"""
+                select max({target_column})
+                from {target_table}
+                where username='{ChessApiClient.username}'
+                """
+    if PostgreSqlClient.has_table(table_name=target_table):
+        max_value = PostgreSqlClient.engine.execute(statement).fetchall()[0][0]
+        if max_value is not None:
+            start_date = datetime.strptime(max_value,'%Y-%m-%d') + relativedelta(days=1)
+            end_date = datetime.now()
+            start_date = start_date.strftime('%Y-%m-%d')
+            end_date = end_date.strftime('%Y-%m-%d')
+    return start_date, end_date
+
 def extract_user_info(chess_api_client: ChessApiClient) -> pd.DataFrame:
     df = pd.DataFrame(chess_api_client.get_user_info())
     return df

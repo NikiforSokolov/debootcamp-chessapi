@@ -1,12 +1,4 @@
-chess_api/connectors/__pycache__/__init__.cpython-39.pyc
-chess_api/connectors/__pycache__/Chess.cpython-39.pyc
-assets/__pycache__/__init__.cpython-39.pyc
-assets/__pycache__/Chess.cpython-39.pyc
-connectors/__pycache__/__init__.cpython-39.pyc
-connectors/__pycache__/Chess.cpython-39.pyc
-connectors/__pycache__/postgresql.cpython-39.pyc
-pipelines/__pycache__/__init__.cpython-39.pyc
-pipelines/__pycache__/Chess.cpython-39.pyc
-connectors/__pycache__/postgresql.cpython-39.pyc
-assets/__pycache__/Chess.cpython-39.pyc
-assets/__pycache__/__init__.cpython-39.pyc
+# Ignore __pycache__ directories
+**/__pycache__/
+
+

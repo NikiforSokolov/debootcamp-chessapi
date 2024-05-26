@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Table, MetaData
+from sqlalchemy import create_engine, Table, MetaData, inspect
 from sqlalchemy.engine import URL, CursorResult
 from sqlalchemy.dialects import postgresql
 
@@ -67,3 +67,10 @@ class PostgreSqlClient:
             },
         )
         self.engine.execute(upsert_statement)
+
+    def has_table(self, table_name: str):
+        """
+        checks if a table name exists in the database
+        """
+        inspector = inspect(self.engine)
+        return table_name in inspector.get_table_names()

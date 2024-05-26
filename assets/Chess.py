@@ -115,6 +115,22 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
 
   return valid_games
 
+def ETL_incremental(ChessApiClient: ChessApiClient, PostgreSqlClient: PostgreSqlClient, target_table: str, target_column: str, start_date: datetime, end_date: datetime):
+    statement = f"""
+select max({target_column})
+from {target_table}
+where username={ChessApiClient.username}
+"""
+    if PostgreSqlClient.has_table(table_name=target_table):
+        max_value = PostgreSqlClient.engine.execute(statement).fetchall()[0][0]
+        if max_value is not None:
+            start_date = relativedelta(days=1)
+            end_date = datetime.strptime(datetime.now(), '%Y-%m-%d')
+
+    return start_date, end_date
+
+
+
 def extract_user_info(chess_api_client: ChessApiClient) -> pd.DataFrame:
     df = pd.DataFrame(chess_api_client.get_user_info())
     return df

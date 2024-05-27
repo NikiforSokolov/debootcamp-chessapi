@@ -106,17 +106,20 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
   valid_games = []
   start_date = months[0]
   end_date = months[-1]
-
+  dates_ran = []
   for date in months:
+      month_str = date.strftime('%Y-%m')
       year = date.year
       month = date.month
-      games = chess_api_client.get_monthly_games(year=year, month=month)
-      for game in games:
-          parsed_game = parse_game(game, chess_api_client.username)
-          game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
-          if start_date <= game_date <= end_date:
-              valid_games.append(parsed_game)
-      print(f"loaded games for the month of {year}-{month}")
+      if month_str not in dates_ran:
+        dates_ran.append(month_str)
+        games = chess_api_client.get_monthly_games(year=year, month=month)
+        for game in games:
+            parsed_game = parse_game(game, chess_api_client.username)
+            game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
+            if start_date <= game_date <= end_date:
+                valid_games.append(parsed_game)
+        print(f"loaded games for the month of {year}-{month}")
 
   valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
   valid_games["start_date_time"]=valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)

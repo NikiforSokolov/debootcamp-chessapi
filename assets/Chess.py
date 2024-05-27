@@ -1,4 +1,9 @@
 import sys
+sys.path.append(r"C:\Users\yagve\Project\debootcamp-chessapi")
+from dotenv import load_dotenv
+load_dotenv()
+
+
 from datetime import datetime
 import re
 from dateutil.relativedelta import relativedelta
@@ -8,6 +13,7 @@ from sqlalchemy import Table, MetaData, Column, Integer, String, Float
 from connectors.postgresql import PostgreSqlClient
 import re
 from connectors.Chess import ChessApiClient
+
 
 def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
     """
@@ -91,6 +97,8 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
               valid_games.at[index, 'user_avg_move_time_sec'] = average_time_per_move_black
           else:
               raise Exception("The User does not have a valid color i.e either white or black")
+            
+          
 
       return valid_games
 
@@ -111,6 +119,10 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
       print(f"loaded games for the month of {year}-{month}")
 
   valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
+  valid_games["start_date_time"]=valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)
+  valid_games.drop(columns=['start_date', 'start_time'], axis=1, inplace=True)
+  valid_games['end_date_time'] = pd.to_datetime(valid_games['end_date_time'], unit='s')
+
 
 
   return valid_games

@@ -173,7 +173,7 @@ def incremental_modify_dates(ChessApiClient: ChessApiClient,
                 from {target_table}
                 where username='{ChessApiClient.username}'
                 """
-    if PostgreSqlClient.has_table(table_name=target_table):
+    if PostgreSqlClient.table_exists(table_name=target_table):
         max_value = PostgreSqlClient.engine.execute(statement).fetchall()[0][0]
         if max_value is not None:
             start_date = datetime.strptime(max_value,'%Y-%m-%d') + relativedelta(days=1)

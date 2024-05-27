@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r"C:\Users\yagve\Project\debootcamp-chessapi")
+sys.path.append(r"C:\Users\danielp\debootcamp-chessapi")
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -97,8 +97,8 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
               valid_games.at[index, 'user_avg_move_time_sec'] = average_time_per_move_black
           else:
               raise Exception("The User does not have a valid color i.e either white or black")
-            
-          
+
+
 
       return valid_games
 
@@ -106,21 +106,24 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
   valid_games = []
   start_date = months[0]
   end_date = months[-1]
-
+  dates_ran = []
   for date in months:
+      month_str = date.strftime('%Y-%m')
       year = date.year
       month = date.month
-      games = chess_api_client.get_monthly_games(year=year, month=month)
-      for game in games:
-          parsed_game = parse_game(game, chess_api_client.username)
-          game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
-          if start_date <= game_date <= end_date:
-              valid_games.append(parsed_game)
-      print(f"loaded games for the month of {year}-{month}")
+      if month_str not in dates_ran:
+        dates_ran.append(month_str)
+        games = chess_api_client.get_monthly_games(year=year, month=month)
+        for game in games:
+            parsed_game = parse_game(game, chess_api_client.username)
+            game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
+            if start_date <= game_date <= end_date:
+                valid_games.append(parsed_game)
+        print(f"loaded games for the month of {year}-{month}")
 
   valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
   valid_games["start_date_time"]=valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)
-  valid_games.drop(columns=['start_date', 'start_time'], axis=1, inplace=True)
+  #valid_games.drop(columns=['start_date', 'start_time'], axis=1, inplace=True)
   valid_games['end_date_time'] = pd.to_datetime(valid_games['end_date_time'], unit='s')
 
 
@@ -170,7 +173,7 @@ def incremental_modify_dates(ChessApiClient: ChessApiClient,
                 from {target_table}
                 where username='{ChessApiClient.username}'
                 """
-    if PostgreSqlClient.has_table(table_name=target_table):
+    if PostgreSqlClient.table_exists(table_name=target_table):
         max_value = PostgreSqlClient.engine.execute(statement).fetchall()[0][0]
         if max_value is not None:
             start_date = datetime.strptime(max_value,'%Y-%m-%d') + relativedelta(days=1)
@@ -207,6 +210,7 @@ def parse_game(game: dict, username: str) -> dict:
     parsed_game["time_class"] = game.get("time_class")
     parsed_game['end_date_time'] = game.get("end_time")
     parsed_game["username"] = username
+
     if game.get("white").get("username").lower() == username or game.get("white").get("username") == username:
         parsed_game["user_color"] = "white"
         parsed_game["user_rating"] = game.get("white").get("rating")
@@ -234,6 +238,7 @@ def parse_game(game: dict, username: str) -> dict:
             parsed_game["user_accuracy"] = None
             parsed_game["opponent_accuracy"] = None
     parsed_pgn = pgn_to_dict(parsed_game["pgn"])
+    parsed_game["pgn_result"] = parsed_pgn.get('Result')
     parsed_game["start_date"] = parsed_pgn.get("Date").replace('.','-')
     parsed_game["ECO"] = parsed_pgn.get("ECO")
     parsed_game["ECOUrl"] = parsed_pgn.get("ECOUrl")
@@ -247,6 +252,57 @@ def extract_eco_codes(eco_codes_path: Path) -> pd.DataFrame:
     """
     df = pd.read_csv(eco_codes_path)
     return df
+
+def transform(valid_games: pd.DataFrame, eco_codes: pd.DataFrame):
+    valid_games["start_date_time"]= valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)
+    valid_games['start_date_time'] = valid_games['start_date_time'].astype('datetime64')
+    valid_games['end_date_time'] = pd.to_datetime(valid_games['end_date_time'], unit='s')
+    valid_games.loc[valid_games['time_class'].isin(['bullet','blitz','rapid','daily'])]
+    valid_games['rating_diff'] = valid_games['user_rating'] - valid_games['opponent_rating']
+    valid_games['game_duration'] = valid_games['end_date_time'] - valid_games['start_date_time']
+    valid_games['game_duration_sec'] = valid_games['game_duration'].dt.total_seconds()
+    valid_games['game_duration_sec'] = valid_games['game_duration_sec'].astype('int')
+    valid_games['game_duration'] = valid_games['game_duration'].apply(format_timedelta)
+    valid_games['match_result'] = valid_games['pgn_result'].map({'1-0':'win','0-1':'defet','1/2-1/2':'draw'})
+    valid_games['user_avg_move_time_sec'] =     valid_games['user_avg_move_time_sec'].round(1)
+    transformed_games = valid_games.merge(eco_codes, on='ECO', how='left')
+    transformed_games.drop(columns=['pgn','opponent_url','start_time','ECO','ECOUrl','pgn_result'], inplace=True)
+    transformed_games.rename(columns={'time_class':'game_mode',
+                                'moves_per_player':'rounds',
+                                'result':'result_subcategory',
+                                'Desc':'opening'}, inplace=True)
+    transformed_games = transformed_games[['game_id',
+                                           'game_url',
+                                           'game_mode',
+                                           'start_date',
+                                           'username',
+                                           'user_color',
+                                           'user_rating',
+                                           'user_accuracy',
+                                           'opponent',
+                                           'opponent_rating',
+                                           'opponent_accuracy',
+                                           'rating_diff',
+                                           'match_result',
+                                           'result_subcategory',
+                                           'start_date_time',
+                                           'end_date_time',
+                                           'game_duration',
+                                           'game_duration_sec',
+                                           'rounds',
+                                           'user_avg_move_time_sec',
+                                           'opening']]
+    return transformed_games
+
+
+def format_timedelta(td):
+    """
+    Function to convert timedelta to HH:MM:ss
+    """
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f'{hours:02}:{minutes:02}:{seconds:02}'
 
 def load(
     df: pd.DataFrame,

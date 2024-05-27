@@ -4,5 +4,5 @@ config:
     target_table: "games"
     target_column: "start_date"
     start_date: "2023-01-01"
-    end_date: "2024-05-31"
+    end_date: "2023-12-31"
     username: "dolols"

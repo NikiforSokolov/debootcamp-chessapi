@@ -9,7 +9,7 @@ from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteg
 
 
 
-from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates
+from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates, transform
 from connectors.Chess import ChessApiClient
 from connectors.postgresql import PostgreSqlClient
 
@@ -56,51 +56,44 @@ if __name__ == "__main__":
                                                     target_column=target_column,
                                                     start_date=start_date,
                                                     end_date=end_date)
-    games_df = extract_games(start_date=start_date,
+    valid_games = extract_games(start_date=start_date,
                   end_date=end_date,
                   chess_api_client=chess_api_client)
-    if games_df.shape[0] > 0:
+    eco_codes = extract_eco_codes('./assets/data/eco_codes.csv')
+    if valid_games.shape[0] > 0:
         #transform
-        games_df = games_df[['game_url',
-                            'game_id',
-                            'time_class',
-                            'username',
-                            'user_color',
-                            'user_rating',
-                            'opponent',
-                            'opponent_rating',
-                            'result',
-                            'user_accuracy',
-                            'opponent_accuracy',
-                            'start_date',
-                            'ECO',
-                            'moves_per_player',
-                            'user_avg_move_time_sec']]
-        print(games_df.head())
+        trasformed_games = transform(valid_games, eco_codes)
+        print(trasformed_games.head())
         #load
         games_tbl = Table("games",
             metadata,
-            Column('game_url',String),
-            Column('game_id', BigInteger, primary_key=True),
-            Column('time_class', String),
+            Column('game_id',BigInteger, primary_key=True),
+            Column('game_url', String),
+            Column('game_mode', String),
+            Column('start_date', String),
             Column('username', String),
             Column('user_color', String),
             Column('user_rating', Integer),
+            Column('user_accuracy', Float),
             Column('opponent', String),
             Column('opponent_rating', Integer),
-            Column('result', String),
-            Column('user_accuracy', Float),
             Column('opponent_accuracy', Float),
-            Column('start_date', String),
-            Column('ECO', String),
-            Column('moves_per_player', Integer),
-            Column('user_avg_move_time_sec', Float)
+            Column('rating_diff', Integer),
+            Column('match_result', String),
+            Column('result_subcategory', String),
+			Column('start_date_time', String),
+            Column('end_date_time', String),
+            Column('game_duration', String),
+            Column('game_duration_sec', Integer),
+            Column('rounds', Integer),
+			Column('user_avg_move_time_sec', Float),
+            Column('opening', String)
             )
-        load(df=games_df,
+        load(df=trasformed_games,
             postgresql_client=postgres_sql_client,
             table=games_tbl,
             metadata=metadata,
-            load_method="insert")
+            load_method="overwrite")
 
         # load(games_df,
         #      postgresql_client=postgres_sql_client,

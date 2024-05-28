@@ -183,7 +183,9 @@ def incremental_modify_dates(ChessApiClient: ChessApiClient,
     return start_date, end_date
 
 def extract_user_info(chess_api_client: ChessApiClient) -> pd.DataFrame:
-    df = pd.DataFrame(chess_api_client.get_user_info())
+    data = []
+    data.append(chess_api_client.get_user_info())
+    df = pd.DataFrame(data)
     return df
 
 def pgn_to_dict(pgn: list) -> dict:

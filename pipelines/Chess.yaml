@@ -3,6 +3,13 @@ config:
   games:
     target_table: "games"
     target_column: "start_date"
-    start_date: "2023-01-01"
+    start_date: "2023-12-01"
     end_date: "2023-12-31"
     username: "dolols"
+  players:
+    target_table: "players"
+    # if usernames is blank - players list from games will be used
+    usernames: 
+      - "dolols"
+      - "hikaru"
+      - "magnuscarlsen"

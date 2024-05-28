@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime
 import logging
 import yaml
-from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteger, DATE, TIMESTAMP
+from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteger, DATE, TIMESTAMP, Boolean
 
 
 
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     DB_PASSWORD = os.environ.get("DB_PASSWORD")
     PORT = os.environ.get("PORT")
 
-    #get config variables
+    # get config file
     yaml_file_path = __file__.replace(".py", ".yaml")
     if Path(yaml_file_path).exists():
         with open(yaml_file_path) as yaml_file:
@@ -34,25 +34,39 @@ if __name__ == "__main__":
             f"Missing {yaml_file_path} file! Please create the yaml file with at least a `name` key for the pipeline name."
         )
 
-
+    # extracting variables from config file
     chess_api_client = ChessApiClient(pipeline_config.get("config").get("games").get("username"), user_agent=USER_AGENT)
     start_date = pipeline_config.get("config").get("games").get("start_date")
     end_date = pipeline_config.get("config").get("games").get("end_date")
-    target_table = pipeline_config.get("config").get("games").get("target_table")
+    target_table_games = pipeline_config.get("config").get("games").get("target_table")
     target_column = pipeline_config.get("config").get("games").get("target_column")
+    
+    # extracting players from config, either from players section or from games section (if players section is missing/empty)
+    players = pipeline_config.get("config").get("players").get("usernames")
+    if players is None:
+        players = pipeline_config.get("config").get("games").get("username")
+
+    target_table_players = pipeline_config.get("config").get("players").get("target_table")
+
+
+    # defining postrgesql client
+    postgres_sql_client = PostgreSqlClient(server_name=SERVER_NAME,
+                    database_name=DATABASE_NAME,
+                    username=DB_USERNAME,
+                    password=DB_PASSWORD,
+                    port=PORT)
+    metadata = MetaData()
+
+    # TODO - add check for the availability of the postgres instance
+
 
     # extract
-    postgres_sql_client = PostgreSqlClient(server_name=SERVER_NAME,
-                     database_name=DATABASE_NAME,
-                     username=DB_USERNAME,
-                     password=DB_PASSWORD,
-                     port=PORT)
-    metadata = MetaData()
+
     # run this "incremental_modify_dates" function to check if the username exists, if so the start date will update to one day ahead of max date
     # end date will evaluate to current date
     start_date, end_date = incremental_modify_dates(ChessApiClient=chess_api_client,
                                                     PostgreSqlClient=postgres_sql_client,
-                                                    target_table=target_table,
+                                                    target_table=target_table_games,
                                                     target_column=target_column,
                                                     start_date=start_date,
                                                     end_date=end_date)
@@ -95,6 +109,56 @@ if __name__ == "__main__":
             metadata=metadata,
             load_method="overwrite")
 
-        # load(games_df,
-        #      postgresql_client=postgres_sql_client,
-        #      )
+    # players 
+    
+    # defining target table
+    players_tbl = Table("players",
+        metadata,
+        Column('player_id', BigInteger, primary_key=True),
+        Column('snaphot_date', TIMESTAMP, default=datetime.now(), primary_key=True),
+        Column('name',String),
+        Column('username', String),
+        Column('title', String),
+        Column('followers', BigInteger),
+        Column('country', String),
+        Column('location', String),
+        Column('last_online', BigInteger),
+        Column('joined', BigInteger),
+        Column('is_streamer', Boolean)
+    )
+
+    # looping through players in config file
+    # making sure players is a list to iretare through
+    if not isinstance(players, list):
+        players = [players]
+    
+    for username in players:
+
+        chess_api_client = ChessApiClient(username, user_agent=USER_AGENT)
+
+        # extract player info
+        player_df = extract_user_info(chess_api_client=chess_api_client)
+
+        # transform player (adding missing columns if needed)
+        player_df = player_df.reindex(columns=['player_id',
+                               'name',
+                               'username',
+                               'title',
+                               'followers',
+                               'country',
+                               'location',
+                               'last_online',
+                               'joined',
+                               'is_streamer'])
+
+        #load player
+        load(df=player_df,
+            postgresql_client=postgres_sql_client,
+            table=players_tbl,
+            metadata=metadata,
+            load_method="insert"
+        )
+
+
+
+

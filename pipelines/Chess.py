@@ -1,5 +1,4 @@
 import sys
-sys.path.append('C:\\Users\\Nsokolov\\Bootcamp\\debootcamp-chessapi')
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -42,7 +41,11 @@ if __name__ == "__main__":
     target_table_games = pipeline_config.get("config").get("games").get("target_table")
     target_column = pipeline_config.get("config").get("games").get("target_column")
     
+    # extracting players from config, either from players section or from games section (if players section is missing/empty)
     players = pipeline_config.get("config").get("players").get("usernames")
+    if players is None:
+        players = pipeline_config.get("config").get("games").get("username")
+
     target_table_players = pipeline_config.get("config").get("players").get("target_table")
 
 
@@ -125,6 +128,10 @@ if __name__ == "__main__":
     )
 
     # looping through players in config file
+    # making sure players is a list to iretare through
+    if not isinstance(players, list):
+        players = [players]
+    
     for username in players:
 
         chess_api_client = ChessApiClient(username, user_agent=USER_AGENT)

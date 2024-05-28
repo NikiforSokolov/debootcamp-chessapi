@@ -9,7 +9,8 @@ config:
   players:
     target_table: "players"
     # if usernames is blank - players list from games will be used
-    usernames: 
+    usernames:
       - "dolols"
       - "hikaru"
       - "magnuscarlsen"
+  eco_codes_path: "./assets/data/eco_codes.csv"

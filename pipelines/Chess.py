@@ -40,7 +40,7 @@ if __name__ == "__main__":
     end_date = pipeline_config.get("config").get("games").get("end_date")
     target_table_games = pipeline_config.get("config").get("games").get("target_table")
     target_column = pipeline_config.get("config").get("games").get("target_column")
-    
+
     # extracting players from config, either from players section or from games section (if players section is missing/empty)
     players = pipeline_config.get("config").get("players").get("usernames")
     if players is None:
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     valid_games = extract_games(start_date=start_date,
                   end_date=end_date,
                   chess_api_client=chess_api_client)
-    eco_codes = extract_eco_codes('./assets/data/eco_codes.csv')
+    eco_codes = extract_eco_codes(pipeline_config.get("config").get("eco_codes_path"))
     if valid_games.shape[0] > 0:
         #transform
         trasformed_games = transform(valid_games, eco_codes)
@@ -109,8 +109,8 @@ if __name__ == "__main__":
             metadata=metadata,
             load_method="overwrite")
 
-    # players 
-    
+    # players
+
     # defining target table
     players_tbl = Table("players",
         metadata,
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # making sure players is a list to iretare through
     if not isinstance(players, list):
         players = [players]
-    
+
     for username in players:
 
         chess_api_client = ChessApiClient(username, user_agent=USER_AGENT)

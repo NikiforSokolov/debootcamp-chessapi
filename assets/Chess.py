@@ -2,7 +2,6 @@ import sys
 from dotenv import load_dotenv
 load_dotenv()
 
-
 from datetime import datetime
 import re
 from dateutil.relativedelta import relativedelta
@@ -61,46 +60,6 @@ def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
 
 def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClient) -> pd.DataFrame:
 
-  def _get_avg_move_time(valid_games:pd.DataFrame)-> pd.DataFrame:
-
-
-      for index, row in valid_games.iterrows(): #iterate over dataframe
-      # Use regex to find all timestamps
-          timestamps = re.findall(r'\[%clk (\d+:\d+:\d+\.\d+)\]', row['pgn'])
-
-      # Convert timestamps to seconds for easier calculations
-          def convert_to_seconds(t):
-              hours, minutes, seconds = t.split(':')
-              return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
-
-      # Convert each timestamp to seconds
-          times_in_seconds = [convert_to_seconds(time) for time in timestamps]
-
-      # Calculate time spent on each move, separating by player
-          white_times = times_in_seconds[0::2]
-          black_times = times_in_seconds[1::2]
-
-          def calculate_time_differences(times):
-              return [times[i] - times[i + 1] for i in range(len(times) - 1)]
-
-          white_time_spent = calculate_time_differences(white_times)
-          black_time_spent = calculate_time_differences(black_times)
-
-      # Compute average time spent per move for each player
-          average_time_per_move_white = sum(white_time_spent) / len(white_time_spent) if white_time_spent else 0
-          average_time_per_move_black = sum(black_time_spent) / len(black_time_spent) if black_time_spent else 0
-
-          if row['user_color'] == "white":
-              valid_games.at[index, 'user_avg_move_time_sec'] = average_time_per_move_white
-          elif row['user_color'] == "black":
-              valid_games.at[index, 'user_avg_move_time_sec'] = average_time_per_move_black
-          else:
-              raise Exception("The User does not have a valid color i.e either white or black")
-
-
-
-      return valid_games
-
   months = generate_monthly_dates(start_date, end_date)
   valid_games = []
   start_date = months[0]
@@ -119,13 +78,6 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
             if start_date <= game_date <= end_date:
                 valid_games.append(parsed_game)
         print(f"loaded games for the month of {year}-{month}")
-
-  valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
-  valid_games["start_date_time"]=valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)
-  #valid_games.drop(columns=['start_date', 'start_time'], axis=1, inplace=True)
-  valid_games['end_date_time'] = pd.to_datetime(valid_games['end_date_time'], unit='s')
-
-
 
   return valid_games
 
@@ -254,7 +206,43 @@ def extract_eco_codes(eco_codes_path: Path) -> pd.DataFrame:
     df = pd.read_csv(eco_codes_path)
     return df
 
+def _get_avg_move_time(valid_games:pd.DataFrame)-> pd.DataFrame:
+      for index, row in valid_games.iterrows(): #iterate over dataframe
+      # Use regex to find all timestamps
+          timestamps = re.findall(r'\[%clk (\d+:\d+:\d+\.\d+)\]', row['pgn'])
+
+      # Convert timestamps to seconds for easier calculations
+          def convert_to_seconds(t):
+              hours, minutes, seconds = t.split(':')
+              return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+
+      # Convert each timestamp to seconds
+          times_in_seconds = [convert_to_seconds(time) for time in timestamps]
+
+      # Calculate time spent on each move, separating by player
+          white_times = times_in_seconds[0::2]
+          black_times = times_in_seconds[1::2]
+
+          def calculate_time_differences(times):
+              return [times[i] - times[i + 1] for i in range(len(times) - 1)]
+
+          white_time_spent = calculate_time_differences(white_times)
+          black_time_spent = calculate_time_differences(black_times)
+
+      # Compute average time spent per move for each player
+          average_time_per_move_white = sum(white_time_spent) / len(white_time_spent) if white_time_spent else 0
+          average_time_per_move_black = sum(black_time_spent) / len(black_time_spent) if black_time_spent else 0
+
+          if row['user_color'] == "white":
+              valid_games.at[index, 'user_avg_move_time_sec'] = average_time_per_move_white
+          elif row['user_color'] == "black":
+              valid_games.at[index, 'user_avg_move_time_sec'] = average_time_per_move_black
+          else:
+              raise Exception("The User does not have a valid color i.e either white or black")
+      return valid_games
+
 def transform(valid_games: pd.DataFrame, eco_codes: pd.DataFrame):
+    valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
     valid_games["start_date_time"]= valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)
     valid_games['start_date_time'] = valid_games['start_date_time'].astype('datetime64')
     valid_games['end_date_time'] = pd.to_datetime(valid_games['end_date_time'], unit='s')

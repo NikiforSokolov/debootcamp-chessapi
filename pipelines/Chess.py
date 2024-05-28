@@ -7,8 +7,6 @@ import logging
 import yaml
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteger, DATE, TIMESTAMP, Boolean
 
-
-
 from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates, transform
 from connectors.Chess import ChessApiClient
 from connectors.postgresql import PostgreSqlClient
@@ -35,11 +33,12 @@ if __name__ == "__main__":
         )
 
     # extracting variables from config file
-    chess_api_client = ChessApiClient(pipeline_config.get("config").get("games").get("username"), user_agent=USER_AGENT)
+
     start_date = pipeline_config.get("config").get("games").get("start_date")
     end_date = pipeline_config.get("config").get("games").get("end_date")
     target_table_games = pipeline_config.get("config").get("games").get("target_table")
     target_column = pipeline_config.get("config").get("games").get("target_column")
+    usernames = pipeline_config.get("config").get("games").get("usernames")
 
     # extracting players from config, either from players section or from games section (if players section is missing/empty)
     players = pipeline_config.get("config").get("players").get("usernames")
@@ -59,27 +58,7 @@ if __name__ == "__main__":
 
     # TODO - add check for the availability of the postgres instance
 
-
-    # extract
-
-    # run this "incremental_modify_dates" function to check if the username exists, if so the start date will update to one day ahead of max date
-    # end date will evaluate to current date
-    start_date, end_date = incremental_modify_dates(ChessApiClient=chess_api_client,
-                                                    PostgreSqlClient=postgres_sql_client,
-                                                    target_table=target_table_games,
-                                                    target_column=target_column,
-                                                    start_date=start_date,
-                                                    end_date=end_date)
-    valid_games = extract_games(start_date=start_date,
-                  end_date=end_date,
-                  chess_api_client=chess_api_client)
-    eco_codes = extract_eco_codes(pipeline_config.get("config").get("eco_codes_path"))
-    if valid_games.shape[0] > 0:
-        #transform
-        trasformed_games = transform(valid_games, eco_codes)
-        print(trasformed_games.head())
-        #load
-        games_tbl = Table("games",
+    games_tbl = Table("games",
             metadata,
             Column('game_id',BigInteger, primary_key=True),
             Column('game_url', String),
@@ -95,20 +74,40 @@ if __name__ == "__main__":
             Column('rating_diff', Integer),
             Column('match_result', String),
             Column('result_subcategory', String),
-			Column('start_date_time', String),
+            Column('start_date_time', String),
             Column('end_date_time', String),
             Column('game_duration', String),
             Column('game_duration_sec', Integer),
             Column('rounds', Integer),
-			Column('user_avg_move_time_sec', Float),
+            Column('user_avg_move_time_sec', Float),
             Column('opening', String)
             )
-        load(df=trasformed_games,
-            postgresql_client=postgres_sql_client,
-            table=games_tbl,
-            metadata=metadata,
-            load_method="overwrite")
+    eco_codes = extract_eco_codes(pipeline_config.get("config").get("eco_codes_path"))
 
+    for username in usernames:
+        chess_api_client = ChessApiClient(username, USER_AGENT)
+        print(f"getting games for user: {chess_api_client.username}")
+        # run this "incremental_modify_dates" function to check if the username exists, if so the start date will update to one day ahead of max date
+        # end date will evaluate to current date
+        start_date, end_date = incremental_modify_dates(ChessApiClient=chess_api_client,
+                                                        PostgreSqlClient=postgres_sql_client,
+                                                        target_table=target_table_games,
+                                                        target_column=target_column,
+                                                        start_date=start_date,
+                                                        end_date=end_date)
+        # extract
+        valid_games = extract_games(start_date=start_date,
+                    end_date=end_date,
+                    chess_api_client=chess_api_client)
+        if valid_games.shape[0] > 0:
+            #transform
+            trasformed_games = transform(valid_games, eco_codes)
+            #load
+            load(df=trasformed_games,
+                postgresql_client=postgres_sql_client,
+                table=games_tbl,
+                metadata=metadata,
+                load_method="insert")
     # players
 
     # defining target table

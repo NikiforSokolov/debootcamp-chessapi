@@ -78,8 +78,6 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
                 game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
                 if start_date <= game_date <= end_date:
                     valid_games.append(parsed_game)
-        print(f"loaded games for the month of {year}-{month}")
-
   return pd.DataFrame(valid_games)
 
 def incremental_modify_dates(ChessApiClient: ChessApiClient,
@@ -128,7 +126,7 @@ def incremental_modify_dates(ChessApiClient: ChessApiClient,
     if PostgreSqlClient.table_exists(table_name=target_table):
         max_value = PostgreSqlClient.engine.execute(statement).fetchall()[0][0]
         if max_value is not None:
-            start_date = datetime.strptime(max_value,'%Y-%m-%d') + relativedelta(days=1)
+            start_date = datetime.strptime(max_value,'%Y-%m-%d') + relativedelta(days=-2)
             end_date = datetime.now()
             start_date = start_date.strftime('%Y-%m-%d')
             end_date = end_date.strftime('%Y-%m-%d')

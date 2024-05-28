@@ -74,9 +74,10 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
         games = chess_api_client.get_monthly_games(year=year, month=month)
         for game in games:
             parsed_game = parse_game(game, chess_api_client.username)
-            game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
-            if start_date <= game_date <= end_date:
-                valid_games.append(parsed_game)
+            if parsed_game is not None:
+                game_date = datetime.strptime(parsed_game.get("start_date"),'%Y-%m-%d')
+                if start_date <= game_date <= end_date:
+                    valid_games.append(parsed_game)
         print(f"loaded games for the month of {year}-{month}")
 
   return pd.DataFrame(valid_games)
@@ -157,6 +158,8 @@ def pgn_to_dict(pgn: list) -> dict:
 
 def parse_game(game: dict, username: str) -> dict:
     parsed_game = {}
+    if game.get('pgn') is None:
+        return
     parsed_game["game_url"] = game.get('url')
     parsed_game["pgn"] = game.get('pgn')
     parsed_game["game_id"] = re.search(r"(live|daily)\/(\d+)$",parsed_game["game_url"]).group(2)

@@ -16,3 +16,4 @@ config:
       - "hikaru"
       - "magnuscarlsen"
   eco_codes_path: "./assets/data/eco_codes.csv"
+  log_folder_path: "./logs"

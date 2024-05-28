@@ -79,7 +79,7 @@ def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClie
                 valid_games.append(parsed_game)
         print(f"loaded games for the month of {year}-{month}")
 
-  return valid_games
+  return pd.DataFrame(valid_games)
 
 def incremental_modify_dates(ChessApiClient: ChessApiClient,
                              PostgreSqlClient: PostgreSqlClient,

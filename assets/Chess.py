@@ -1,5 +1,4 @@
 import sys
-sys.path.append(r"C:\Users\danielp\debootcamp-chessapi")
 from dotenv import load_dotenv
 load_dotenv()
 

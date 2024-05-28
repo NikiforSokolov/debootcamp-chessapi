@@ -1,5 +1,5 @@
 from jinja2 import Environment
-from database_extractor import (
+from assets.database_extractor import (
     SqlExtractParser,
     DatabaseTableExtractor,
 )

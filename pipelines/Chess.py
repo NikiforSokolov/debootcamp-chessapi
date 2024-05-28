@@ -6,12 +6,20 @@ from datetime import datetime
 import logging
 import yaml
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteger, DATE, TIMESTAMP, Boolean
+from jinja2 import Environment, FileSystemLoader
 
 from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates, transform
 from connectors.Chess import ChessApiClient
 from connectors.postgresql import PostgreSqlClient
 from assets.pipeline_logging import PipelineLogging
 from assets.metadata_logging import MetaDataLoggingStatus, MetaDataLogging
+from assets.extract_load_transform import (
+    extract_load,
+    transform,
+    SqlTransform,
+)
+from graphlib import TopologicalSorter
+
 
 if __name__ == "__main__":
     # setting up environment variables
@@ -203,6 +211,73 @@ if __name__ == "__main__":
         metadata_logger.log(
             status=MetaDataLoggingStatus.RUN_FAILURE, logs=pipeline_logging.get_logs()
         )  #
+
+    # Adding ELT Pipeline
+    
+    SOURCE_DATABASE_NAME = os.environ.get("SOURCE_DATABASE_NAME")
+    SOURCE_SERVER_NAME = os.environ.get("SOURCE_SERVER_NAME")
+    SOURCE_DB_USERNAME = os.environ.get("SOURCE_DB_USERNAME")
+    SOURCE_DB_PASSWORD = os.environ.get("SOURCE_DB_PASSWORD")
+    SOURCE_PORT = os.environ.get("SOURCE_PORT")
+    TARGET_DATABASE_NAME = os.environ.get("TARGET_DATABASE_NAME")
+    TARGET_SERVER_NAME = os.environ.get("TARGET_SERVER_NAME")
+    TARGET_DB_USERNAME = os.environ.get("TARGET_DB_USERNAME")
+    TARGET_DB_PASSWORD = os.environ.get("TARGET_DB_PASSWORD")
+    TARGET_PORT = os.environ.get("TARGET_PORT")
+
+    source_postgresql_client = PostgreSqlClient(
+        server_name=SOURCE_SERVER_NAME,
+        database_name=SOURCE_DATABASE_NAME,
+        username=SOURCE_DB_USERNAME,
+        password=SOURCE_DB_PASSWORD,
+        port=SOURCE_PORT,
+    )
+
+    target_postgresql_client = PostgreSqlClient(
+        server_name=TARGET_SERVER_NAME,
+        database_name=TARGET_DATABASE_NAME,
+        username=TARGET_DB_USERNAME,
+        password=TARGET_DB_PASSWORD,
+        port=TARGET_PORT,
+    )
+
+    extract_template_environment = Environment(
+        loader=FileSystemLoader("assets/sql/extract")
+    )
+
+    extract_load(
+        template_environment=extract_template_environment,
+        source_postgresql_client=source_postgresql_client,
+        target_postgresql_client=target_postgresql_client,
+    )
+
+    transform_template_environment = Environment(
+        loader=FileSystemLoader("assets/sql/transform")
+    )
+
+    # create nodes
+    performance = SqlTransform(
+        table_name="performance",
+        postgresql_client=target_postgresql_client,
+        environment=transform_template_environment,
+    )
+    overall_performance = SqlTransform(
+        table_name="overall_performance",
+        postgresql_client=target_postgresql_client,
+        environment=transform_template_environment,
+    )
+    top_openings = SqlTransform(
+        table_name="top_openings",
+        postgresql_client=target_postgresql_client,
+        environment=transform_template_environment,
+    )
+   
+    performance.create_table_as()
+    overall_performance.create_table_as()
+    overall_performance.create_table_as()
+    
+    
+
 
 
 

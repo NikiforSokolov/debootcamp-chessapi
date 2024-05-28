@@ -1,5 +1,5 @@
 from jinja2 import Environment
-from etl_project.connectors.postgresql import PostgreSqlClient
+from connectors.postgresql import PostgreSqlClient
 from pathlib import Path
 from sqlalchemy import Table, MetaData
 import logging

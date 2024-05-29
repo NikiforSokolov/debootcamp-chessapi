@@ -8,4 +8,4 @@ FROM
 GROUP BY 
     username
 ORDER BY 
-    username ASC;
+    username ASC

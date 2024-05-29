@@ -6,7 +6,7 @@ SELECT
     COUNT(CASE WHEN match_result = 'defet' THEN 1 END) AS no_of_defeat,
     COUNT(CASE WHEN match_result = 'draw' THEN 1 END) AS no_of_draw
 FROM 
-    games
+    public.games
 GROUP BY 
     opening,username,game_mode
 

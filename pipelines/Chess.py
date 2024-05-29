@@ -8,7 +8,7 @@ import yaml
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteger, DATE, TIMESTAMP, Boolean
 from jinja2 import Environment, FileSystemLoader
 
-from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates, transform
+from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates, transform as transform_etl
 from connectors.Chess import ChessApiClient
 from connectors.postgresql import PostgreSqlClient
 from assets.pipeline_logging import PipelineLogging
@@ -140,7 +140,7 @@ if __name__ == "__main__":
             if valid_games.shape[0] > 0:
                 #transform
                 pipeline_logging.logger.info('Trasforming dataframes')
-                trasformed_games = transform(valid_games, eco_codes)
+                trasformed_games = transform_etl(valid_games, eco_codes)
                 #load
                 pipeline_logging.logger.info('Loading data to postgres')
                 load(df=trasformed_games,

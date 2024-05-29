@@ -7,6 +7,6 @@ SELECT
     SUM(CASE WHEN match_result = 'defeat' THEN 1 ELSE 0 END) AS total_losses,
     SUM(CASE WHEN match_result = 'draw' THEN 1 ELSE 0 END) AS total_draws
 FROM 
-    all_detail
+    public.games
 GROUP BY
-     username;
+     username

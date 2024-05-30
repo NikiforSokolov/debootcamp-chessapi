@@ -59,6 +59,17 @@ def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:
     return dates
 
 def extract_games(start_date: str, end_date: str, chess_api_client: ChessApiClient) -> pd.DataFrame:
+  """
+  Extracts valid chess games from the Chess API within the specified date range.
+
+  Args:
+      start_date (str): The start date of the date range in the format 'YYYY-MM-DD'.
+      end_date (str): The end date of the date range in the format 'YYYY-MM-DD'.
+      chess_api_client (ChessApiClient): The Chess API client used to fetch the games.
+
+  Returns:
+      pd.DataFrame: A DataFrame containing the valid chess games within the specified date range.
+  """
 
   months = generate_monthly_dates(start_date, end_date)
   valid_games = []
@@ -133,12 +144,30 @@ def incremental_modify_dates(ChessApiClient: ChessApiClient,
     return start_date, end_date
 
 def extract_user_info(chess_api_client: ChessApiClient) -> pd.DataFrame:
+    """
+    Extracts the user information from the Chess API client and returns it as a pandas DataFrame.
+
+    Args:
+        chess_api_client (ChessApiClient): The Chess API client to use for retrieving the user information.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the user information.
+    """
     data = []
     data.append(chess_api_client.get_user_info())
     df = pd.DataFrame(data)
     return df
 
 def pgn_to_dict(pgn: list) -> dict:
+    """
+    Converts a Portable Game Notation (PGN) string into a dictionary.
+
+    Args:
+        pgn (list): A list of strings representing the PGN data.
+
+    Returns:
+        dict: A dictionary containing the parsed PGN data, including the game metadata and the moves.
+    """
     pgn_dict = {}
     rows = pgn.split("\n")
     for row in rows:
@@ -155,6 +184,16 @@ def pgn_to_dict(pgn: list) -> dict:
     return pgn_dict
 
 def parse_game(game: dict, username: str) -> dict:
+    """
+    Parses a game dictionary and returns a dictionary with the parsed game data.
+
+    Args:
+        game (dict): A dictionary representing a game.
+        username (str): The username of the user.
+
+    Returns:
+        dict: A dictionary containing the parsed game data.
+    """
     parsed_game = {}
     if game.get('pgn') is None:
         return
@@ -208,6 +247,15 @@ def extract_eco_codes(eco_codes_path: Path) -> pd.DataFrame:
     return df
 
 def _get_avg_move_time(valid_games:pd.DataFrame)-> pd.DataFrame:
+      """
+      Calculates the average move time for each player in a given set of valid chess games.
+
+      Args:
+          valid_games (pd.DataFrame): A DataFrame containing the PGN (Portable Game Notation) data for valid chess games.
+
+      Returns:
+          pd.DataFrame: The input DataFrame with the 'user_avg_move_time_sec' column added, containing the average move time in seconds for the user's color.
+      """
       for index, row in valid_games.iterrows(): #iterate over dataframe
       # Use regex to find all timestamps
           timestamps = re.findall(r'\[%clk (\d+:\d+:\d+\.\d+)\]', row['pgn'])
@@ -243,6 +291,28 @@ def _get_avg_move_time(valid_games:pd.DataFrame)-> pd.DataFrame:
       return valid_games
 
 def transform(valid_games: pd.DataFrame, eco_codes: pd.DataFrame):
+    """
+    Transforms a DataFrame of valid chess games by performing the following operations:
+    - Calculates the average move time for each game
+    - Converts the start and end date/time columns to datetime format
+    - Filters the games to only include those in the 'bullet', 'blitz', 'rapid', or 'daily' time classes
+    - Calculates the rating difference between the user and opponent
+    - Calculates the game duration in seconds
+    - Formats the game duration as a string
+    - Maps the PGN result to a 'win', 'defeat', or 'draw' match result
+    - Rounds the user's average move time to 1 decimal place
+    - Merges the game data with the ECO code information
+    - Drops unnecessary columns
+    - Renames columns to more descriptive names
+    - Selects the final set of columns to include in the transformed DataFrame
+
+    Args:
+        valid_games (pd.DataFrame): A DataFrame containing the original chess game data.
+        eco_codes (pd.DataFrame): A DataFrame containing the ECO code information.
+
+    Returns:
+        pd.DataFrame: A transformed DataFrame containing the processed chess game data.
+    """
     valid_games=_get_avg_move_time(pd.DataFrame(valid_games))
     valid_games["start_date_time"]= valid_games["start_date"].astype(str) + " " + valid_games["start_time"].astype(str)
     valid_games['start_date_time'] = valid_games['start_date_time'].astype('datetime64')

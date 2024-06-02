@@ -21,13 +21,6 @@ from assets.extract_load_transform import (
 from graphlib import TopologicalSorter
 
 
-"""
-This is the main entry point for the Chess pipeline. It sets up the necessary environment variables, loads the pipeline configuration, and defines the logging and database clients. The pipeline then extracts game and player data from the Chess API, transforms the data, and loads it into a PostgreSQL database. Additionally, it defines an ELT (Extract, Load, Transform) pipeline that performs further transformations on the data and loads it into a target database.
-
-The pipeline is designed to be run periodically to keep the data up-to-date. It uses an incremental approach to fetch only new data since the last run, and it handles any changes to the data schema or configuration.
-
-The pipeline is highly configurable through a YAML configuration file, which allows users to customize the data sources, target tables, and other parameters.
-"""
 if __name__ == "__main__":
     # setting up environment variables
     load_dotenv()

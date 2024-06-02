@@ -112,7 +112,37 @@ A slightly deeper analytics on players statistics.
 * Statuses explanation
 </summary> <br />
 
-
-
+| Status               | Explanation                                      |
+|----------------------|--------------------------------------------------|
+| Active and playing   | The player is active and has played at least one game within the last month |
+| Active not playing   | The player is active but has not played any games within the last month |
+| Not active           | The player wasn't online within last month |
+| Unknown | The player's status is unknown (missing data for player) |
 
 </details>
+
+### Table: Play Rating Trend
+
+Time series with changes of player's rating over time. After each completed game the rating is changing based on the result.
+
+| Column Name         | Data Type               | Description                                      |
+|---------------------|-------------------------|--------------------------------------------------|
+| start_date          | character varying       | The date when change in rating occured              |
+| username            | character varying       | The username of the player                        |
+| last_rating         | integer                 | The rating of the player at the end of the rating period |
+| increase_in_rating  | integer                 | The increase in rating during the rating period   |
+
+
+### Table: Pipeline Logs
+
+This is a technical object which keeps logs and metadata about the pipeline executions.
+
+| Column Name   | Data Type               | Description                                      |
+|---------------|-------------------------|--------------------------------------------------|
+| pipeline_name | character varying       | The name of the pipeline                          |
+| run_id        | integer                 | The unique identifier for each pipeline run       |
+| timestamp     | character varying       | The timestamp when the pipeline execution occurred |
+| status        | character varying       | The status of the pipeline execution              |
+| config        | json                    | The configuration of the pipeline                 |
+| logs          | character varying       | The logs generated during the pipeline execution  |
+

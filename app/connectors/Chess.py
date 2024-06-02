@@ -4,6 +4,10 @@ from typing import Union
 from requests import JSONDecodeError
 import re
 
+# This part for ignoring ssl certificate warnings
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 class ChessApiClient:
     def __init__(self, username: str, user_agent: str):
         """
@@ -21,7 +25,7 @@ class ChessApiClient:
         """
         Returns a list of urls of months played by a user
         """
-        response = requests.get(url=f"{self.api_path}/player/{self.username}/games/archives", headers=self.headers)
+        response = requests.get(url=f"{self.api_path}/player/{self.username}/games/archives", headers=self.headers, verify=False)
         if response.status_code == 200 and response.json().get("archives") is not None:
             return response.json().get("archives")
         else:
@@ -36,7 +40,7 @@ class ChessApiClient:
         - month (int): the month the games were played
         """
         url = f"{self.api_path}/player/{self.username}/games/{year}/{str(month).zfill(2)}"
-        response = requests.get(url=url, headers=self.headers)
+        response = requests.get(url=url, headers=self.headers, verify=False)
         if response.status_code == 200 and response.json().get("games") is not None:
             return response.json().get("games")
 
@@ -44,7 +48,7 @@ class ChessApiClient:
         """
         Returns info about the user
         """
-        response = requests.get(url=f"{self.api_path}/player/{self.username}", headers=self.headers)
+        response = requests.get(url=f"{self.api_path}/player/{self.username}", headers=self.headers, verify=False)
         if response.status_code == 200:
             return response.json()
         else:
@@ -57,7 +61,7 @@ class ChessApiClient:
         info = self.get_user_info()
         country_url = info.get("country")
         if country_url is not None:
-            response = requests.get(url=country_url, headers=self.headers)
+            response = requests.get(url=country_url, headers=self.headers, verify=False)
             if response.status_code == 200:
                 return response.json()
             else:

@@ -1,5 +1,4 @@
 import sys
-sys.path.append('C:\\Users\\Nsokolov\\Bootcamp\\debootcamp-chessapi\\')
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -13,7 +12,6 @@ from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteg
 from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load
 from connectors.Chess import ChessApiClient
 from connectors.postgresql import PostgreSqlClient
-
 
 if __name__ == "__main__":
     # setting up environment variables

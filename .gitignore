@@ -1,2 +1,3 @@
-chess_api/connectors/__pycache__/__init__.cpython-39.pyc
-chess_api/connectors/__pycache__/Chess.cpython-39.pyc
+# Ignore __pycache__ directories
+**/__pycache__/
+**/logs/

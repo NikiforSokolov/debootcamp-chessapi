@@ -27,6 +27,8 @@ Also, there is a one-off data source `eco_codes.csv` which was created manually 
 
 ## Documentation
 
+This readme serves as the high-level documentation overview. For detailed explanations of individual functions and classes, please refer to the code itself (`docstring` is used for annotating funcations).
+
 On top of it, there are following useful artifacts in this project:
 - [Development Guidelines](docs/development_guidelines.md): The standards and principles our group members have agreed on to streamline the development process.
 - [Data Dictionary](docs/data_dictionary.md): Detailed descriptions of all data columns and tables used in the project (both sourse and serve objects).
@@ -64,7 +66,7 @@ This pipeline could be executed in two modes: run module as a script locally and
  
 
 **Steps for building**:
-1. From the root directory run command `docker build -t <image_name>:<version>`.
+1. From the root directory run command `docker build -t <image_name>:<version> .`.
 2. For starting a container, use `.env` file from the root. It has correct references for PostreSQL db host. Your terminal command could be:
 ```bash
 docker run --env-file .env --name=<container_name> <image_name>:<version>
@@ -76,6 +78,19 @@ docker run --env-file .env --name=<container_name> <image_name>:<version>
 ```bash
 docker run --env-file .env --name=<container_name> <image_name>:<version>
 ```
+</details>
+
+## AWS execution
+
+This pipeline was also deployed to AWS to run on cloud. The screenshots of artifacts could be found under the spoiler.
+
+<details>
+<summary>
+ |Cloud setup
+</summary>
+
+![artifacts/meme_01.png](artifacts/meme_01.png)
+
 </details>
 
 

@@ -3,9 +3,9 @@
 ## About
 
 <div style="overflow: auto;">
-    <img src="docs/artifacts/chess_logo.png" alt="Project Image" style="float: right; margin: 0 0 1em 1em; width: 600px; padding-right: 200px;">
-    <p>This project is designed to extract data from the Chess\.com API, transform it, and load it into a PostgreSQL database. This project is called "EtLT" because we used some in-memory transformations (before the load to db) and transformations within the PostgreSQL to precalculate some analysis.</p>
-    <p>The goal of this project was to enable efficient data analysis and discover valuable insights, trends, and statistical information pertaining to chess\.com games archive. This is achieved by implementing a modern and robust pipeline that aligns with the principles of data engineering, allowing for the application and enhancement of our acquired skills.</p>
+    <img src="docs/artifacts/chess_logo.png" alt="Project Image" style="float: right; margin: 0 0 1em 1em; width: 200px; padding-right: 200px;">
+    <p>This project is designed to extract data from the Chess.com API, transform it, and load it into a PostgreSQL database. This project is called "EtLT" because we used some in-memory transformations (before the load to db) and transformations within the PostgreSQL to precalculate some analysis.</p>
+    <p>The goal of this project was to enable efficient data analysis and discover valuable insights, trends, and statistical information pertaining to chess.com games archive. This is achieved by implementing a modern and robust pipeline that aligns with the principles of data engineering, allowing for the application and enhancement of our acquired skills.</p>
     <p>Code owners of this repository (project) are:</p>
     <ul>
     <li><a href="https://github.com/danihello">Daniel Premisler</a></li>
@@ -16,7 +16,7 @@
 
 ## Data sources
 
-The main data source for this project is the public API of Chess\.com ([official documentation](https://www.chess.com/news/view/published-data-api) and [community guide](https://www.chess.com/clubs/forum/view/guide-unofficial-api-documentation])). We extract various types of data, including game archives, player information, statistics, and more. The API calls/objects we use include:
+The main data source for this project is the public API of Chess.com ([official documentation](https://www.chess.com/news/view/published-data-api) and [community guide](https://www.chess.com/clubs/forum/view/guide-unofficial-api-documentation])). We extract various types of data, including game archives, player information, statistics, and more. The API calls/objects we use include:
 
 - `Player/username`
 - `Username/stats`

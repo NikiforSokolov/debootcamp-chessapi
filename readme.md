@@ -44,12 +44,12 @@ This pipeline could be executed in two modes: run module as a script locally and
  Local execution
 </summary>
 
-**Prerequisites**: 
+**Prerequisites**:
 1. You need to have postresql v14 installed on your machine. It should have `postgres` db with a password `postgres`.
 2. You need to satisfy requirements specified in the `app/requirements.txt`.
 
 **Steps**:
-1. You can run the pipeline by executing `python -m pipelines.Chess` command in your terminal 
+1. You can run the pipeline by executing `python -m pipelines.Chess` command in your terminal
 2. For local execution (running module as a script) use the `.env` file located within `/app` directory. It has `localhost` reference for postgresql. I.e., you don't need to do any extra step here.
 3. You will be able to see both processed data and relevant logs in `postgres.public` schema in your PGAdmin.
 
@@ -58,12 +58,12 @@ This pipeline could be executed in two modes: run module as a script locally and
 <details>
 <summary>
  Docker Container
-</summary> 
+</summary>
 
-**Prerequisites**: 
+**Prerequisites**:
 1. You need to have postresql v14 installed on your machine. It should have `postgres` db with a password `postgres`.
 2. You also need to have Docker Desktop installed and running.
- 
+
 
 **Steps for building**:
 1. From the root directory run command `docker build -t <image_name>:<version> .`.
@@ -86,13 +86,43 @@ This pipeline was also deployed to AWS to run on cloud. The screenshots of artif
 
 <details>
 <summary>
- |Cloud setup
+ ETL - Elastic Container Registry (ECR) - Image
 </summary>
 
-![artifacts/meme_01.png](artifacts/meme_01.png)
-
+<img src="docs/artifacts/AWS_ECR_Images.PNG">
 </details>
 
+<details>
+<summary>
+ Storage solution - Relational Database Service (RDS)
+</summary>
+
+<img src="docs/artifacts/AWS_RDS.png">
+</details>
+
+<details>
+<summary>
+ IAM Role
+</summary>
+
+<img src="docs/artifacts/AWS_IAM.png">
+</details>
+
+<details>
+<summary>
+ Envionment variables - S3
+</summary>
+
+<img src="docs/artifacts/AWS_S3_env.png">
+</details>
+
+<details>
+<summary>
+ Task Scheduler - Elastic Container Service (ECS)
+</summary>
+
+<img src="docs/artifacts/AWS_schedule_task.png">
+</details>
 
 ## Lessons Learned
 

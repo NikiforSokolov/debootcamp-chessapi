@@ -8,9 +8,15 @@ from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import pandas as pd
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float
-from app.connectors.postgresql import PostgreSqlClient
-import re
-from app.connectors.Chess import ChessApiClient
+import os
+
+# Adding this to decide how module should be imported: with app. prefix is for pytest running, without it is for running the script
+if r'\app' in os.getcwd() or r'/app' in os.getcwd():
+    from connectors.postgresql import PostgreSqlClient
+    from connectors.Chess import ChessApiClient    
+else:
+    from app.connectors.postgresql import PostgreSqlClient
+    from app.connectors.Chess import ChessApiClient
 
 
 def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:

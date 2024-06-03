@@ -18,10 +18,10 @@
 
 The main data source for this project is the public API of Chess.com ([official documentation](https://www.chess.com/news/view/published-data-api) and [community guide](https://www.chess.com/clubs/forum/view/guide-unofficial-api-documentation])). We extract various types of data, including game archives, player information, statistics, and more. The API calls/objects we use include:
 
-- `Player/username`
-- `Username/stats`
-- `Username/games/archives`
-- `Username/games/<timestamp>`
+- `https://api.chess.com/pub/player/{username}/stats`
+- `https://api.chess.com/pub/player/{username}/games/archives`
+- `https://api.chess.com/pub/player/{username}/games/{YYYY}/{MM}`
+- `https://api.chess.com/pub/player/{username}`
 
 Also, there is a one-off data source `eco_codes.csv` which was created manually and contains information about opennings with their codes (used for data enrichment).
 
@@ -46,7 +46,7 @@ This pipeline could be executed in two modes: run module as a script locally and
 
 **Prerequisites**: 
 1. You need to have postresql v14 installed on your machine. It should have `postgres` db with a password `postgres`.
-2. You need to have conda environment activated to satisfy DE Bootcamp requirements from the first module.
+2. You need to satisfy requirements specified in the `app/requirements.txt`.
 
 **Steps**:
 1. You can run the pipeline by executing `python -m pipelines.Chess` command in your terminal 
@@ -73,7 +73,7 @@ docker run --env-file .env --name=<container_name> <image_name>:<version>
 ```
 
 **Steps for pulling**:
-1. You can pull the latest image of this pipeline by executing `docker pull danihello/chess:1.0`.
+1. You can pull the latest image of this pipeline by executing `docker pull danihello/chess:2.0`.
 2. For starting a container, use `.env` file from the root of this repo. It has correct references for PostreSQL db host. Your terminal command could be:
 ```bash
 docker run --env-file .env --name=<container_name> <image_name>:<version>

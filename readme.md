@@ -35,6 +35,49 @@ On top of it, there are following useful artifacts in this project:
 
 ## Design
 
+### Design Overview
+
+The proposed architecture for the Chess.com data extraction and storage project is designed to facilitate seamless data ingestion, transformation, and storage. The primary components of the architecture are divided into three main sections: Source, Ingestion, and Storage + Serving.
+
+<img src="docs/artifacts/Architecture_diagram.png">
+
+<b><font size="3">Source</font> </b>
+
+- <b>Chess.com API:</b> The source of our data is the Chess.com API, a robust and comprehensive API that provides access to a wide range of data related to chess games, player information, statistics, and other relevant details.
+
+<b><font size="3">Ingestion</font> </b>
+
+- <b>AWS:</b> The architecture leverages AWS cloud services for scalable and reliable data processing and storage. AWS provides the infrastructure necessary for running the Docker container and the Python scripts used for data ingestion.
+- <b>Docker:</b> Docker is used to containerize the Python script, ensuring a consistent and reproducible environment for the ETL/ELT process. This containerization allows for easy deployment and scaling of the ingestion process.
+
+- <b>Python Script:</b> A custom Python script is responsible for extracting, transforming, and loading (ETL) the data from the Chess.com API. This script performs the following tasks:
+  - <b>Extract:</b> Connects to the Chess.com API and retrieves the required data,   including game archives, player information, and statistics.
+  - <b>Transform:</b> Processes the raw data to clean, normalize, and aggregate it into a format suitable for analysis.
+  - <b>Load:</b> Loads the transformed data into a PostgreSQL database for storage and further processing.
+
+<b><font size="3">Storage + Serving</font> </b>
+
+- <b>Amazon RDS:</b> Amazon RDS is used to host the PostgreSQL database, providing a scalable and managed relational database solution. RDS ensures high availability, security, and automated backups.
+- <b>PostgreSQL:</b> The transformed data is stored in a PostgreSQL database. This database is designed to support complex queries and analytics, providing pre-built aggregated tables ready for end-user consumption. The data stored in PostgreSQL will facilitate analysis by analytics and data science teams, enabling them to uncover patterns, trends, and statistics.
+
+### ETL and ELT Patterns
+
+The architecture employs both ETL (Extract, Transform, Load) and ELT (Extract, Load, Transform) patterns to ensure efficient data processing and storage.
+
+<b><font size="3">ETL</font> </b>
+
+In the ETL process, data is first extracted from the Chess.com API, then transformed into a suitable format, and finally loaded into the PostgreSQL database. This pattern is beneficial when data needs to be processed and transformed before storage, ensuring that only clean and aggregated data is stored in the database.
+
+<b><font size="3">ELT</font> </b>
+
+In the ELT process, data is extracted from the Chess.com API and directly loaded into the PostgreSQL database in its raw form. The transformation is then performed within the database using SQL queries and stored procedures. This pattern is useful when the database has sufficient processing power to handle large-scale transformations, allowing for more flexible and scalable data processing.
+
+By combining ETL and ELT patterns, the architecture ensures efficient and flexible data processing, enabling the analytics and data science teams to perform complex analyses and derive valuable insights from the data.
+
+### Conclusion
+
+The proposed architecture provides a robust and scalable solution for extracting, transforming, and storing data from the Chess.com API. By leveraging AWS, Docker, and PostgreSQL, the architecture ensures reliable and efficient data processing, making it easier for analytics and data science teams to uncover valuable insights and trends from the chess data.
+
 ## Running instructions
 
 This pipeline could be executed in two modes: run module as a script locally and in a Docker container (both building and pulling an image). Here are the running instructions for each option.

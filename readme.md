@@ -176,6 +176,6 @@ This pipeline was also deployed to AWS to run on cloud. The screenshots of artif
 
 ## Lessons Learned
 
-1. Agree with team members on code standards and approaches in the beginning and add more points with time. This will help streamline the development process.
-2. Some api's might have problems with SSL certificates. Think twice before starting to use company's laptop.
-3. Having rather more smaller increments to make reviews easier for peers.
+1. Be careful about using company’s laptop – if there is more secured network setting, SSL certificate issue might arise.
+2. Working on the git with branching and reviews, learning how to collaborate with peers.
+3. Working with `path` package for interactive mode, allowing to run script in the jupiter-like interactive notebook.

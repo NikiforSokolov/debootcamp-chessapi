@@ -8,9 +8,9 @@ from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import pandas as pd
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float
-from connectors.postgresql import PostgreSqlClient
+from app.connectors.postgresql import PostgreSqlClient
 import re
-from connectors.Chess import ChessApiClient
+from app.connectors.Chess import ChessApiClient
 
 
 def generate_monthly_dates(start_date: str, end_date: str) -> list[datetime]:

@@ -62,7 +62,14 @@ The proposed architecture for the Chess.com data extraction and storage project 
 
 ### ETL and ELT Patterns
 
-The architecture employs both ETL (Extract, Transform, Load) and ELT (Extract, Load, Transform) patterns to ensure efficient data processing and storage.
+The architecture employs both ETL (Extract, Transform, Load) and ELT (Extract, Load, Transform) patterns to ensure efficient data processing and storage. Below are some key parts of selected patterns:
+
+1. **Extraction**: The Python script connects to the Chess.com API and retrieves the required data, including game archives, player information, and statistics. This is done in the `extract_games` and `extract_user_info` functions.
+2. **Incremental Extraction**: The script uses an incremental extraction approach for game data to capture only the changes since the last update. This is handled in the `incremental_modify_dates` function.
+3. **Transformation**: The raw data is processed to parsed, clean, normalize, and aggregate it into a format suitable for analysis. This is done in the transform_etl and transform_players functions.
+4. **Loading**: The transformed data is loaded into a PostgreSQL database for storage and further processing. This is done in the `load` method of the `PostgresClient` class.
+5. **ELT**: We've added some transformations after the data loading process in our classic ETL approach. This is to create materialized tables with pre-calculated analytics, making it easier for downstream teams to use the data. These transformations are applied to data that has already been uploaded by the ETL process.
+6. **Upsert Approach**: For user information and statistics, an upsert approach is used to ensure that new and updated records are accurately reflected in the database. This is handled in the `load` function with the `load_method` parameter set to "upsert" or "insert".
 
 <b><font size="3">ETL</font> </b>
 

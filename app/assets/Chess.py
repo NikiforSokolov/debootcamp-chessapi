@@ -284,6 +284,21 @@ def transform(valid_games: pd.DataFrame, eco_codes: pd.DataFrame):
                                            'opening']]
     return transformed_games
 
+def transform_players(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transforms the 'last_online' and 'joined' columns in players data to datetime format.
+    
+    Args:
+        df (pd.DataFrame): The DataFrame containing the 'last_online' and 'joined' columns.
+        
+    Returns:
+        pd.DataFrame: The DataFrame with transformed columns to datetime format.
+    """
+
+    df['last_online'] = pd.to_datetime(df['last_online'], unit='s')
+    df['joined'] = pd.to_datetime(df['joined'], unit='s')
+
+    return df
 
 def format_timedelta(td):
     """

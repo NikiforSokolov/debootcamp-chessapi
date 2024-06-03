@@ -8,7 +8,15 @@ import yaml
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float, BigInteger, DATE, TIMESTAMP, Boolean
 from jinja2 import Environment, FileSystemLoader
 
-from assets.Chess import extract_eco_codes, extract_games, extract_user_info, load, incremental_modify_dates, transform as transform_etl
+from assets.Chess import (
+    extract_eco_codes, 
+    extract_games, 
+    extract_user_info, 
+    load, 
+    incremental_modify_dates, 
+    transform as transform_etl, 
+    transform_players,
+)
 from connectors.Chess import ChessApiClient
 from connectors.postgresql import PostgreSqlClient
 from assets.pipeline_logging import PipelineLogging
@@ -162,8 +170,8 @@ if __name__ == "__main__":
             Column('followers', BigInteger),
             Column('country', String),
             Column('location', String),
-            Column('last_online', BigInteger),
-            Column('joined', BigInteger),
+            Column('last_online', TIMESTAMP),
+            Column('joined', TIMESTAMP),
             Column('is_streamer', Boolean)
         )
 
@@ -182,20 +190,22 @@ if __name__ == "__main__":
 
             # transform player (adding missing columns if needed)
             pipeline_logging.logger.info('Trasforming dataframes')
-            player_df = player_df.reindex(columns=['player_id',
-                                'name',
-                                'username',
-                                'title',
-                                'followers',
-                                'country',
-                                'location',
-                                'last_online',
-                                'joined',
-                                'is_streamer'])
+            player_transformed = transform_players(player_df)
+
+            player_final = player_transformed.reindex(columns=['player_id',
+                                                            'name',
+                                                            'username',
+                                                            'title',
+                                                            'followers',
+                                                            'country',
+                                                            'location',
+                                                            'last_online',
+                                                            'joined',
+                                                            'is_streamer'])
 
             #load player
             pipeline_logging.logger.info('Loading data to postgres')
-            load(df=player_df,
+            load(df=player_final,
                 postgresql_client=postgres_sql_client,
                 table=players_tbl,
                 metadata=metadata,
